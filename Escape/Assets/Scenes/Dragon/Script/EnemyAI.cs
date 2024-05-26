@@ -1,3 +1,8 @@
+using System.Collections.Generic;
+using UnityEngine.AI;
+using UnityEngine.SceneManagement;
+using UnityEngine;
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,114 +14,97 @@ public class EnemyAI : MonoBehaviour
     public NavMeshAgent ai;
     public List<Transform> destinations;
     public Animator aiAnim;
-    public float walkspped, chaseSpeed, MinidleTime,MaxidleTime,idleTime,rayCastDistance,cathDistance,chaseTime,minChaseTime,maxChaseTime,jumpScareTime;
-    public int destinitionAmount;
-    public bool walking, chassing;
+    public float walkSpeed, chaseSpeed, minIdleTime, maxIdleTime, idleTime, sightDistance, catchDistance, chaseTime, minChaseTime, maxChaseTime, jumpscareTime;
+    public bool walking, chasing;
     public Transform player;
     Transform currentDest;
     Vector3 dest;
-    int randNum,randNum2;
-    public Vector3 rayCastOfset;
+    int randNum;
+    public int destinationAmount;
+    public Vector3 rayCastOffset;
     public string deathScene;
 
-
-    private void Start()
+    void Start()
     {
         walking = true;
-        randNum = Random.Range(0, destinitionAmount);
+        randNum = Random.Range(0, destinations.Count);
         currentDest = destinations[randNum];
     }
-    private void Update()
+    void Update()
     {
         Vector3 direction = (player.position - transform.position).normalized;
         RaycastHit hit;
-        if(Physics.Raycast(transform.position+rayCastOfset, direction, out hit,rayCastDistance)) {
-            if(hit.collider.gameObject.tag == "Player")
+        if (Physics.Raycast(transform.position + rayCastOffset, direction, out hit, sightDistance))
+        {
+            if (hit.collider.gameObject.tag == "Player")
             {
                 walking = false;
                 StopCoroutine("stayIdle");
                 StopCoroutine("chaseRoutine");
                 StartCoroutine("chaseRoutine");
-
-                aiAnim.ResetTrigger("walk");
-                aiAnim.ResetTrigger("idle");
-                aiAnim.SetTrigger("sprint");
-                chassing = true;
+                chasing = true;
             }
-
         }
-        if(chassing==true)
+        if (chasing == true)
         {
             dest = player.position;
             ai.destination = dest;
             ai.speed = chaseSpeed;
-
-            if (ai.remainingDistance <= cathDistance)
+            aiAnim.ResetTrigger("walk");
+            aiAnim.ResetTrigger("idle");
+            aiAnim.SetTrigger("sprint");
+            float distance = Vector3.Distance(player.position, ai.transform.position);
+            if (distance <= catchDistance)
             {
                 player.gameObject.SetActive(false);
+                aiAnim.ResetTrigger("walk");
+                aiAnim.ResetTrigger("idle");
                 aiAnim.ResetTrigger("sprint");
                 aiAnim.SetTrigger("jumpscare");
                 StartCoroutine(deathRoutine());
-                chassing=false;
+                chasing = false;
             }
-
         }
         if (walking == true)
         {
             dest = currentDest.position;
             ai.destination = dest;
-            ai.speed = walkspped;
-            if(ai.remainingDistance <= ai.stoppingDistance)
+            ai.speed = walkSpeed;
+            aiAnim.ResetTrigger("sprint");
+            aiAnim.ResetTrigger("idle");
+            aiAnim.SetTrigger("walk");
+            if (ai.remainingDistance <= ai.stoppingDistance)
             {
-                randNum2 = Random.Range(0, 2);
-                if(randNum2 == 0) {
-
-                    randNum = Random.Range(0, destinitionAmount);
-                    currentDest = destinations[randNum];
-
-                }
-                if(randNum == 1)
-                {
-                    aiAnim.ResetTrigger("walk");
-                    aiAnim.SetTrigger("idle");
-                    StopCoroutine("stayIdle");
-                    StartCoroutine("stayIdle");
-                    walking = false;
-
-                }
+                aiAnim.ResetTrigger("sprint");
+                aiAnim.ResetTrigger("walk");
+                aiAnim.SetTrigger("idle");
+                ai.speed = 0;
+                StopCoroutine("stayIdle");
+                StartCoroutine("stayIdle");
+                walking = false;
             }
-
-
         }
     }
     IEnumerator stayIdle()
     {
-        idleTime = Random.Range(MinidleTime, MaxidleTime);
+        idleTime = Random.Range(minIdleTime, maxIdleTime);
         yield return new WaitForSeconds(idleTime);
-        walking = true ;
-        randNum = Random.Range(0, destinitionAmount);
+        walking = true;
+        randNum = Random.Range(0, destinations.Count);
         currentDest = destinations[randNum];
-        aiAnim.ResetTrigger("idle");
-        aiAnim.SetTrigger("walk");
-
     }
     IEnumerator chaseRoutine()
     {
-        chaseTime = Random.Range(minChaseTime,maxChaseTime);
+        chaseTime = Random.Range(minChaseTime, maxChaseTime);
         yield return new WaitForSeconds(chaseTime);
         walking = true;
-        chassing = false;
-        randNum = Random.Range(0, destinitionAmount);
+        chasing = false;
+        randNum = Random.Range(0, destinations.Count);
         currentDest = destinations[randNum];
-        aiAnim.ResetTrigger("sprint");
-        aiAnim.SetTrigger("walk");
     }
     IEnumerator deathRoutine()
     {
-        yield return new WaitForSeconds(jumpScareTime);
+        yield return new WaitForSeconds(jumpscareTime);
         SceneManager.LoadScene(deathScene);
     }
-
-
-
 }
