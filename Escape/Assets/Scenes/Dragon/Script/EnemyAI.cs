@@ -18,9 +18,17 @@ public class EnemyAI : MonoBehaviour
     public string deathScene;
     public float aiDistance;
     public GameObject hideText, stopHideText;
+   [SerializeField] private GameObject gameover;
+    public AudioSource aduiosource;
+    public AudioClip audioClip;
+
+
+
 
     void Start()
     {
+        aduiosource = GetComponent<AudioSource>();
+        aduiosource.clip = audioClip;
         walking = true;
         currentDest = destinations[Random.Range(0, destinations.Count)];
     }
@@ -104,6 +112,14 @@ public class EnemyAI : MonoBehaviour
     IEnumerator deathRoutine()
     {
         yield return new WaitForSeconds(jumpscareTime);
-        SceneManager.LoadScene(deathScene);
+        aduiosource.Play();
+        gameover.SetActive(true);
+        yield return new WaitForSecondsRealtime(1); // Gerçek dünya zamaný ile 5 saniye bekle
+        Time.timeScale = 1; // Oyun zamanýný tekrar baþlat
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        SceneManager.LoadScene(currentSceneIndex - 1);
+        Cursor.lockState = CursorLockMode.None;
+
+
     }
 }

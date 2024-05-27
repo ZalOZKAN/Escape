@@ -19,7 +19,7 @@ public class PlayerComponent : MonoBehaviour
     public Light spotlight;
 
     private Vector3 velocity;
-    public float gravity = -9.81f;
+    public float gravity = -13.81f;
     public Transform groundCheck; // Zemin kontrolü için Transform bileþeni
     public float groundDistance = 0.4f;
 
